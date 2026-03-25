@@ -16,7 +16,7 @@ export async function fetchGeoJSON(region: string): Promise<FeatureCollection> {
 }
 
 export const DEFAULT_DATA = {
-  world: "Area\tValue\nAfghanistan\t654000\nAlgeria\t313.12\nAngola\t48340\nArgentina\t1264770\nAustralia\t619180\nAzerbaijan\t15290.57\nBangladesh\t60570453.05\nBelgium\t0",
+  world: "Area,Value\nAfghanistan,654000\nAlgeria,313.12\nAngola,48340\nArgentina,1264770\nAustralia,619180\nAzerbaijan,15290.57\nBangladesh,60570453.05\nBelgium,0",
   taiwan: "縣市名稱,數值\n新北市,4044831\n臺北市,2439507\n桃園市,2355106\n臺中市,2868465\n臺南市,1852477\n高雄市,2718545",
   'taiwan-town': "鄉鎮市名稱,數值\n雲林縣/斗六市,108225\n雲林縣/斗南鎮,43115\n雲林縣/虎尾鎮,71204\n雲林縣/西螺鎮,44212\n雲林縣/土庫鎮,27421\n雲林縣/北港鎮,37115"
 };
