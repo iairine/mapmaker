@@ -5,7 +5,7 @@ import { createColorScale } from '../utils/classification';
 import type { FeatureCollection, Feature } from 'geojson';
 import Legend from './Legend';
 import { toPng } from 'html-to-image';
-import { geoPath, geoMercator, geoTransverseMercator, geoGraticule } from 'd3-geo';
+import { geoPath, geoMercator, geoTransverseMercator, geoGraticule, geoDistance } from 'd3-geo';
 import { geoMollweide, geoRobinson } from 'd3-geo-projection';
 import { zoom, zoomIdentity } from 'd3-zoom';
 import { select } from 'd3-selection';
@@ -114,12 +114,12 @@ const MapArea: React.FC<MapAreaProps> = ({ state }) => {
   };
 
   // Setup Projection
-  const { pathGenerator } = useMemo(() => {
-    if (!geoData) return { pathGenerator: geoPath() };
+  const { pathGenerator, scaleInfo } = useMemo(() => {
+    if (!geoData) return { pathGenerator: geoPath(), scaleInfo: { width: 100, maxLabel: '100km', midLabel: '50km' } };
     const width = 800;
     const height = 500;
     
-    let proj;
+    let proj: any;
     if (state.region === 'world') {
       if (state.worldProjection === 'mercator') {
         proj = geoMercator().translate([width / 2, height / 2]).scale(120);
@@ -137,7 +137,53 @@ const MapArea: React.FC<MapAreaProps> = ({ state }) => {
       proj = geoMercator().fitSize([width, height], geoData);
     }
     
-    return { pathGenerator: geoPath().projection(proj) };
+    // Calculate dynamic scale
+    let scaleWidth = 100;
+    let maxLabel = '100km';
+    let midLabel = '50km';
+    
+    try {
+      if (proj.invert) {
+        const p1 = proj.invert([width / 2, height / 2]);
+        const p2 = proj.invert([width / 2 + 100, height / 2]);
+        if (p1 && p2 && !isNaN(p1[0]) && !isNaN(p2[0])) {
+          const distRadians = geoDistance(p1, p2);
+          const distKm = distRadians * 6371; // Earth radius in km
+          
+          if (distKm > 0.001) {
+            const magnitude = Math.pow(10, Math.floor(Math.log10(distKm)));
+            const normalized = distKm / magnitude; // [1, 10)
+            
+            let niceTargetKm;
+            if (normalized < 2) niceTargetKm = 1 * magnitude;
+            else if (normalized < 5) niceTargetKm = 2 * magnitude;
+            else niceTargetKm = 5 * magnitude;
+            
+            if (niceTargetKm < 1) {
+              const meters = niceTargetKm * 1000;
+              maxLabel = `${Math.round(meters)}m`;
+              midLabel = `${Math.round(meters / 2)}m`;
+            } else {
+              maxLabel = `${Math.round(niceTargetKm)}km`;
+              midLabel = `${Math.round(niceTargetKm / 2)}km`;
+            }
+            
+            scaleWidth = (niceTargetKm / distKm) * 100;
+            // Prevent absurdly long or short scale bars (keep within 40-150 pixels)
+            if (scaleWidth < 40) {
+                niceTargetKm *= 2;
+                scaleWidth *= 2;
+                maxLabel = niceTargetKm >= 1 ? `${Math.round(niceTargetKm)}km` : `${Math.round(niceTargetKm * 1000)}m`;
+                midLabel = niceTargetKm >= 1 ? `${Math.round(niceTargetKm / 2)}km` : `${Math.round(niceTargetKm * 500)}m`;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Could not calculate dynamic scale", e);
+    }
+    
+    return { pathGenerator: geoPath().projection(proj), scaleInfo: { width: scaleWidth, maxLabel, midLabel } };
   }, [geoData, state.region, state.worldProjection]);
 
   return (
@@ -206,15 +252,15 @@ const MapArea: React.FC<MapAreaProps> = ({ state }) => {
 
       {state.showScale && (
         <DraggableItem style={{ position: 'absolute', bottom: '40px', left: '40px', zIndex: 10, filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))' }}>
-          <svg width="120" height="30" style={{ overflow: 'visible' }}>
+          <svg width={Math.max(120, scaleInfo.width + 20)} height="30" style={{ overflow: 'visible' }}>
             <g transform="translate(10, 20)">
-              <line x1="0" y1="0" x2="100" y2="0" stroke="white" strokeWidth="2" />
+              <line x1="0" y1="0" x2={scaleInfo.width} y2="0" stroke="white" strokeWidth="2" />
               <line x1="0" y1="-5" x2="0" y2="5" stroke="white" strokeWidth="2" />
-              <line x1="50" y1="-5" x2="50" y2="5" stroke="white" strokeWidth="2" />
-              <line x1="100" y1="-5" x2="100" y2="5" stroke="white" strokeWidth="2" />
+              <line x1={scaleInfo.width / 2} y1="-5" x2={scaleInfo.width / 2} y2="5" stroke="white" strokeWidth="2" />
+              <line x1={scaleInfo.width} y1="-5" x2={scaleInfo.width} y2="5" stroke="white" strokeWidth="2" />
               <text x="0" y="-10" fill="white" fontSize="10" textAnchor="middle">0</text>
-              <text x="50" y="-10" fill="white" fontSize="10" textAnchor="middle">50km</text>
-              <text x="100" y="-10" fill="white" fontSize="10" textAnchor="middle">100km</text>
+              <text x={scaleInfo.width / 2} y="-10" fill="white" fontSize="10" textAnchor="middle">{scaleInfo.midLabel}</text>
+              <text x={scaleInfo.width} y="-10" fill="white" fontSize="10" textAnchor="middle">{scaleInfo.maxLabel}</text>
             </g>
           </svg>
         </DraggableItem>
