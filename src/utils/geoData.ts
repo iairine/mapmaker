@@ -16,7 +16,7 @@ export async function fetchGeoJSON(region: string): Promise<FeatureCollection> {
 }
 
 export const DEFAULT_DATA = {
-  world: "region_id,value\nUSA,100\nCHN,90\nJPN,80\nDEU,70\nGBR,60\nFRA,50\nIND,40\nITA,30\nBRA,20\nCAN,10\nAUS,50\nARG,35\nZAF,25",
-  taiwan: "region_id,value\n臺北市,100\n新北市,90\n桃園市,80\n臺中市,70\n臺南市,60\n高雄市,50\n新竹縣,40\n苗栗縣,30\n彰化縣,20\n屏東縣,10\n花蓮縣,5\n臺東縣,5\n宜蘭縣,15",
-  'taiwan-town': "region_id,value\n中正區,100\n大同區,90\n中山區,80\n松山區,70\n大安區,60\n萬華區,50\n信義區,40\n士林區,30\n北投區,20\n內湖區,10\n南港區,5\n文山區,5\n板橋區,15\n中和區,25"
+  world: "Area\tValue\nAfghanistan\t654000\nAlgeria\t313.12\nAngola\t48340\nArgentina\t1264770\nAustralia\t619180\nAzerbaijan\t15290.57\nBangladesh\t60570453.05\nBelgium\t0",
+  taiwan: "縣市名稱,數值\n新北市,4044831\n臺北市,2439507\n桃園市,2355106\n臺中市,2868465\n臺南市,1852477\n高雄市,2718545",
+  'taiwan-town': "鄉鎮市名稱,數值\n雲林縣/斗六市,108225\n雲林縣/斗南鎮,43115\n雲林縣/虎尾鎮,71204\n雲林縣/西螺鎮,44212\n雲林縣/土庫鎮,27421\n雲林縣/北港鎮,37115"
 };
