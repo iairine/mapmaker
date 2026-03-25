@@ -3,7 +3,7 @@ import type { FeatureCollection } from 'geojson';
 export const GEOJSON_URLS = {
   world: 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson',
   taiwan: 'https://raw.githubusercontent.com/g0v/twgeojson/master/json/twCounty2010.geo.json',
-  'taiwan-town': '/taiwan-towns.geojson'
+  'taiwan-town': `${import.meta.env.BASE_URL}taiwan-towns.geojson`
 };
 
 export async function fetchGeoJSON(region: string): Promise<FeatureCollection> {

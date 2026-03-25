@@ -78,6 +78,12 @@ const MapArea: React.FC<MapAreaProps> = ({ state }) => {
     return createColorScale(state.parsedData, state.classification, state.classesCount, state.colorScheme);
   }, [state.parsedData, state.classification, state.classesCount, state.colorScheme]);
 
+  const normalizeRegionName = (name: string) => {
+    let n = String(name).toLowerCase().replace(/臺/g, '台');
+    if (n === '桃園縣') n = '桃園市';
+    return n;
+  };
+
   const getRegionValue = (feature: Feature): number | undefined => {
     const properties = feature.properties || {};
     const candidates = [
@@ -94,7 +100,7 @@ const MapArea: React.FC<MapAreaProps> = ({ state }) => {
     ];
     for (const cand of candidates) {
       if (!cand) continue;
-      const match = state.parsedData.find(d => String(d.regionId).toLowerCase() === String(cand).toLowerCase());
+      const match = state.parsedData.find(d => normalizeRegionName(String(d.regionId)) === normalizeRegionName(String(cand)));
       if (match) return match.value;
     }
     return undefined;
@@ -102,7 +108,9 @@ const MapArea: React.FC<MapAreaProps> = ({ state }) => {
   
   const getRegionName = (feature: Feature): string => {
     const properties = feature.properties || {};
-    return String(properties.NAME || properties.name || properties.NAME_1 || properties.COUNTYNAME || properties.CONTINENT || feature.id || 'Unknown');
+    let name = String(properties.NAME || properties.name || properties.NAME_1 || properties.COUNTYNAME || properties.CONTINENT || feature.id || 'Unknown');
+    if (name === '桃園縣') name = '桃園市';
+    return name;
   };
 
   // Setup Projection
